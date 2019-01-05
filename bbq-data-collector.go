@@ -16,6 +16,7 @@ const (
 	HTTP_PASS      = "bbq"
 	DATA_UPDATE    = time.Second * 30
 	NOT_RECORDED   = 0
+	NO_DATA		= "NO_DATA"
 	// NOT_RECORDED     = -1
 )
 
@@ -39,7 +40,7 @@ func get_bbqguru_payload(url string) (payload string, err error) {
 	resp, http_err = client.Do(req)
 
 	if http_err != nil {
-		return "", http_err
+		return NO_DATA, http_err
 	}
 
 	defer resp.Body.Close()
