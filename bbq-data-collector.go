@@ -16,7 +16,7 @@ const (
 	HTTP_PASS      = "bbq"
 	DATA_UPDATE    = time.Second * 30
 	NOT_RECORDED   = 0
-	NO_DATA		= "NO_DATA"
+	NO_DATA        = "NO_DATA"
 	// NOT_RECORDED     = -1
 )
 
@@ -120,16 +120,14 @@ func update_datastore() {
 			fmt.Printf("LightOn: %d\n", pool.LightOn.Reading)
 		*/
 
-		deliver_stats_to_kairos()
-
+		//deliver_stats_to_kairos()
+		deliver_stats_to_influxdb()
 	}
-
 }
 
 func main() {
 
 	fmt.Println("bbq-data-collector polls a BBQguru local network device.")
-	fmt.Println("Data is uploaded to a kairosdb instance for graphing.")
 
 	go update_datastore()
 	watch_http_endpoint()
