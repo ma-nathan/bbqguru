@@ -14,6 +14,10 @@ const (
 	db_url   = "http://metrics:8086"
 )
 
+var (
+	influx_client = influxDBClient()
+)
+
 // CREATE USER admin WITH PASSWORD 'J500icu' WITH ALL PRIVILEGES
 // create database BLAH
 
@@ -156,5 +160,5 @@ func influx_push_metrics(c client.Client) {
 
 func deliver_stats_to_influxdb() {
 
-	influx_push_metrics(influxDBClient())
+	influx_push_metrics( influx_client )
 }
