@@ -121,7 +121,20 @@ func update_datastore() {
 		*/
 
 		//deliver_stats_to_kairos()
-		deliver_stats_to_influxdb()
+
+		// Don't fill up the DB with null datapoints
+
+		if	bbq.PitTemp.Reading == NOT_RECORDED &&
+			bbq.Probe1Temp.Reading == NOT_RECORDED && 
+			bbq.Probe2Temp.Reading == NOT_RECORDED &&
+			bbq.Probe3Temp.Reading == NOT_RECORDED &&
+			bbq.FanPercent.Reading == NOT_RECORDED {
+
+			fmt.Println("Skip inserting all-null data row into DB.")
+
+		} else {
+			deliver_stats_to_influxdb()
+		}
 	}
 }
 
