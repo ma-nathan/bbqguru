@@ -5,15 +5,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+	"github.com/influxdata/influxdb1-client/v2"
 )
 
 const (
-	DEVICE_HOST    = "bbq.fumanchu.com"
 	ASSUME_GONE    = -1 * time.Minute
 	ENDPOINT_PAUSE = time.Second * 25
 	HTTP_TIMEOUT   = time.Second * 8
-	HTTP_USER      = "admin"
-	HTTP_PASS      = "bbq"
 	DATA_UPDATE    = time.Second * 30
 	NOT_RECORDED   = 0
 	NO_DATA        = "NO_DATA"
@@ -22,12 +20,13 @@ const (
 
 var bbq BbqData
 
-func get_bbqguru_payload(url string) (payload string, err error) {
+func get_bbqguru_payload(config Config) (payload string, err error) {
 
 	var resp *http.Response
 	var req *http.Request
 	var http_err error
 	var data []byte
+	var url = "http://" + config.BBQHost + "/all.xml"
 
 	client := &http.Client{Timeout: HTTP_TIMEOUT}
 	req, http_err = http.NewRequest("GET", url, nil)
@@ -36,7 +35,7 @@ func get_bbqguru_payload(url string) (payload string, err error) {
 		return "", http_err
 	}
 
-	req.SetBasicAuth(HTTP_USER, HTTP_PASS)
+	req.SetBasicAuth(config.BBQUser, config.BBQPassword)
 	resp, http_err = client.Do(req)
 
 	if http_err != nil {
@@ -50,7 +49,7 @@ func get_bbqguru_payload(url string) (payload string, err error) {
 	return
 }
 
-func watch_http_endpoint() {
+func watch_http_endpoint(config Config) {
 
 	// Treat the BBQguru unit like a serial endpoint over which we have no control on
 	// the sending side.  Keep polling to see what it currently has to say and update
@@ -58,7 +57,7 @@ func watch_http_endpoint() {
 
 	for {
 
-		payload, err := get_bbqguru_payload("http://" + DEVICE_HOST + "/all.xml")
+		payload, err := get_bbqguru_payload(config)
 
 		if err != nil {
 
@@ -75,7 +74,7 @@ func watch_http_endpoint() {
 	}
 }
 
-func update_datastore() {
+func update_datastore(c client.Client, config Config) {
 
 	// Every DATA_UPDATE interval:
 	// 1. Check if our data is stale, zero it out if so
@@ -133,15 +132,8 @@ func update_datastore() {
 			fmt.Println("Skip inserting all-null data row into DB.")
 
 		} else {
-			deliver_stats_to_influxdb()
+			deliver_stats_to_influxdb(c, config)
 		}
 	}
 }
 
-func main() {
-
-	fmt.Println("bbq-data-collector polls a BBQguru local network device.")
-
-	go update_datastore()
-	watch_http_endpoint()
-}

@@ -7,25 +7,15 @@ import (
 	"time"
 )
 
-const (
-	database = "bbq"
-	username = "admin"
-	password = "J500icu"
-	db_url   = "http://metrics:8086"
-)
 
-var (
-	influx_client = influxDBClient()
-)
-
-// CREATE USER admin WITH PASSWORD 'J500icu' WITH ALL PRIVILEGES
+// CREATE USER admin WITH PASSWORD '$the_usual' WITH ALL PRIVILEGES
 // create database BLAH
 
-func influxDBClient() client.Client {
+func influxDBClient(config Config) client.Client {
 	c, err := client.NewHTTPClient(client.HTTPConfig{
-		Addr:     db_url,
-		Username: username,
-		Password: password,
+		Addr:     config.DatabaseURL,
+		Username: config.DatabaseUser,
+		Password: config.DatabasePassword,
 	})
 	if err != nil {
 		log.Fatalln("Error: ", err)
@@ -33,9 +23,9 @@ func influxDBClient() client.Client {
 	return c
 }
 
-func influx_push_metrics(c client.Client) {
+func influx_push_metrics(c client.Client, config Config) {
 	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
-		Database:  database,
+		Database:  config.DatabaseDatabase,
 		Precision: "s",
 	})
 
@@ -158,7 +148,7 @@ func influx_push_metrics(c client.Client) {
 	}
 }
 
-func deliver_stats_to_influxdb() {
+func deliver_stats_to_influxdb(c client.Client, config Config) {
 
-	influx_push_metrics( influx_client )
+	influx_push_metrics( c, config )
 }
